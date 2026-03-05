@@ -1,0 +1,19 @@
+# LangChain / LangGraph
+langgraph
+langchain-core
+langchain-openai
+langchain-milvus
+langchain_mcp_adapters
+
+# Web Framework
+fastapi
+uvicorn
+
+# Utilities
+pydantic
+httpx
+python-dotenv
+
+# Dev / Test
+pytest
+pytest-asyncio
