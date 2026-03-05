@@ -1,7 +1,9 @@
-"""AnalyzeLogAgent — 존재 여부 확인"""
+"""AnalyzeLogAgent — Tool Calling 기반 존재 여부 확인"""
 
-import json
-
+from ...prompt.domain.analyze_log_prompt import (
+    ANALYZE_LOG_SYSTEM_PROMPT,
+    ANALYZE_LOG_USER_PROMPT,
+)
 from ...state import GraphState
 from .._base_agent import BaseAgent
 
@@ -9,7 +11,10 @@ from .._base_agent import BaseAgent
 class AnalyzeLogAgent(BaseAgent):
     """특정 대상의 존재 여부를 모니터링 데이터에서 확인"""
 
-    intent_id = "ANALYZE.LOG"
+    system_prompt = ANALYZE_LOG_SYSTEM_PROMPT
+    user_prompt_template = ANALYZE_LOG_USER_PROMPT
+
+    intent_id = "ANALYZE_LOG_AGENT"
     intent_name = "존재 여부 확인"
     intent_description = "특정 대상의 존재 여부를 모니터링 데이터에서 확인"
     intent_examples = [
@@ -23,24 +28,25 @@ class AnalyzeLogAgent(BaseAgent):
     ]
 
     def get_allowed_tools(self):
-        return ["monitoring_check_tool"]
+        return ["monitoring_check_tool", "monitoring_history_tool"]
 
-    async def run(self, state: GraphState, prompt_template: str = "") -> GraphState:
+    async def run(self, state: GraphState) -> GraphState:
         context = state.context
         target = context.classified_parameters.get("target", "unknown")
         condition = context.classified_parameters.get("condition", "")
 
-        # TODO: 실제 존재 여부 확인 로직 구현
-        output = json.dumps(
-            {
-                "exists": True,
+        tools = await self.tool.get_tools_for_binding(self.get_allowed_tools())
+
+        result = await self._executor.execute_with_tools(
+            tools=tools,
+            prompt_vars={
+                "agent_prompt": self.get_agent_prompt(),
                 "target": target,
                 "condition": condition,
-                "found_count": 0,
-                "message": f"'{target}'에 대한 존재 여부 확인 완료",
             },
-            ensure_ascii=False,
+            tool_limits={
+                "monitoring_check_tool": {"max_calls": 5},
+            },
         )
-
-        context.result = output
+        context.result = result["content"]
         return state

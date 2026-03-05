@@ -1,7 +1,13 @@
 """Classifier 프롬프트 템플릿
 
-상수:
-  - CLASSIFIER_SYSTEM_PROMPT: 시스템 프롬프트 (분류 규칙 + 응답 형식)
+SYSTEM: 분류 규칙 + 응답 형식
+USER: 의도 목록 + 사용자 입력
+
+바인딩 변수 (system):
+  (없음)
+바인딩 변수 (user):
+  - intent_catalog: 의도 목록 JSON
+  - user_input: 사용자 입력
 """
 
 CLASSIFIER_SYSTEM_PROMPT = """당신은 Intent Classifier입니다.
@@ -24,3 +30,11 @@ CLASSIFIER_SYSTEM_PROMPT = """당신은 Intent Classifier입니다.
 ## 필드 설명
 - intent_id: 선택된 의도의 ID (매칭 불가 시 "unknown")
 - parameters: 추출된 파라미터 객체"""
+
+CLASSIFIER_USER_PROMPT = """<의도_목록>
+$intent_catalog
+</의도_목록>
+
+<사용자_입력>
+$user_input
+</사용자_입력>"""

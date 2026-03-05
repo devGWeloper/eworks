@@ -1,30 +1,35 @@
-"""AgentManagerProvider — 워크플로우 매니저 싱글톤 제공"""
+"""AgentManager 확장 + 전역 접근"""
 
-from .temp.gaia import AgentManager
+from .temp.core import AgentManager as _BaseAgentManager
 
 
-class AgentManagerProvider:
-    _manager: AgentManager | None = None
-    _agent_prompt: str = ""
+class AgentManager(_BaseAgentManager):
+    """AgentManager 확장 — agent_description 추가"""
 
-    @classmethod
-    def initialize(cls, manager: AgentManager, agent_prompt: str = "") -> None:
-        cls._manager = manager
-        cls._agent_prompt = agent_prompt
+    def __init__(self, *, agent_description: str = "", **kwargs):
+        super().__init__(**kwargs)
+        self.agent_description = agent_description
 
-    @classmethod
-    def middle_stream_text(cls, text: str, name: str = "", description: str = "") -> bool:
-        if cls._manager is None:
-            raise RuntimeError("AgentManager not initialized.")
-        return cls._manager.middle_stream_text(text, name, description)
 
-    @classmethod
-    def get_manager(cls) -> AgentManager:
-        if cls._manager is None:
-            raise RuntimeError("AgentManager not initialized.")
-        return cls._manager
+_manager: AgentManager | None = None
 
-    @classmethod
-    def get_agent_prompt(cls) -> str:
-        """Agent identity 프롬프트 반환"""
-        return cls._agent_prompt
+
+def initialize(manager: AgentManager) -> AgentManager:
+    global _manager
+    _manager = manager
+    return _manager
+
+
+def get_manager() -> AgentManager:
+    if _manager is None:
+        raise RuntimeError("AgentManager not initialized.")
+    return _manager
+
+
+def get_agent_description() -> str:
+    return get_manager().agent_description
+
+
+def middle_stream_text(text: str, name: str = "", description: str = "") -> bool:
+    """node에서 로깅처럼 사용하는 편의 함수"""
+    return get_manager().middle_stream_text(text, name, description)

@@ -1,74 +1,125 @@
 """Agent 설정"""
 
-import os
+from dataclasses import dataclass
 from enum import Enum
 
-from core.services.llm_model.llm_model_config import LLMModelConfig
-from core.services.retrieval.collection_config import CollectionConfig, EmbeddingConfig
-from core.services.tool.mcp_server_config import MCPServerConfig
+from ..temp import config
+
+# ── Config Dataclass ──
+
+
+@dataclass
+class EmbeddingConfig:
+    """Embedding 모델 설정"""
+
+    model: str
+    api_key: str = ""
+
+
+@dataclass
+class CollectionConfig:
+    """벡터 DB Collection 설정"""
+
+    collection_name: str
+    uri: str
+    embedding: str
+    token: str = ""
+    vector_field: str = "vector"
+    text_field: str = "text"
+    sparse_vector_field: str = ""  # 설정 시 hybrid search 활성화
+
+
+@dataclass
+class LLMModelConfig:
+    """LLM 모델 설정"""
+
+    model: str
+    base_url: str = ""
+    api_key: str = ""
+    temperature: float = 0.1
+
+
+@dataclass
+class MCPServerConfig:
+    """MCP Server 연결 설정"""
+
+    url: str
+    transport: str = "sse"
+    timeout: int = 30
+
 
 # ── Retrieval ──
 
 
-class EmbeddingName(str, Enum):
-    """등록된 Embedding 모델 이름 Enum"""
+class Embedding(str, Enum):
+    """등록된 Embedding 모델 이름"""
 
-    OPENAI_EMBED = "openai-embed"
-
-
-class CollectionName(str, Enum):
-    """등록된 Collection 이름 Enum"""
-
-    KNOWHOW = "knowhow"
+    BGE_M3 = "bge_m3"
 
 
-RETRIEVAL_EMBEDDINGS = {
-    EmbeddingName.OPENAI_EMBED: EmbeddingConfig(
-        model="text-embedding-3-small",
-        openai_api_base=os.getenv("OPENAI_EMBED_BASE_URL", ""),
-        openai_api_key=os.getenv("OPENAI_EMBED_API_KEY", ""),
+EMBEDDINGS = {
+    Embedding.BGE_M3: EmbeddingConfig(
+        model=config.DOCU_EMBEDDING_MODEL_NAME,
+        api_key=config.DOCU_EMBEDDING_API_KEY,
     ),
 }
 
+
+class Collection(str, Enum):
+    """등록된 Collection 이름"""
+
+    KNOWHOW = "knowhow"
+    UPLOAD = "upload"
+
+
 RETRIEVAL_COLLECTIONS = {
-    CollectionName.KNOWHOW: CollectionConfig(
-        collection_name="knowhow",
-        uri=os.getenv("MILVUS_URI", ""),
-        token=os.getenv("MILVUS_TOKEN", ""),
-        embedding_key=EmbeddingName.OPENAI_EMBED,
+    Collection.KNOWHOW: CollectionConfig(
+        collection_name=config.KNOWHOW_USER_COLLECTION_NAME,
+        uri=config.KNOWHOW_VECTOR_DB_URI,
+        vector_field="knowhow_embedded_vector",
+        text_field="knowhow",
+        embedding=Embedding.BGE_M3,
+    ),
+    Collection.UPLOAD: CollectionConfig(
+        collection_name=config.DOCU_USER_COLLECTION_NAME,
+        uri=config.DOCU_VECTOR_DB_URI,
+        vector_field="dense_vector",
+        sparse_vector_field="sparse_vector",
+        text_field="text",
+        embedding=Embedding.BGE_M3,
     ),
 }
 
 # ── LLM 모델 ──
 
 
-class LLMModelName(str, Enum):
-    """등록된 LLM 모델 이름 Enum"""
+class LLMModel(str, Enum):
+    """등록된 LLM 모델 이름"""
 
-    LLAMA3_70B = "llama-3.3-70b-versatile"
+    QWEN3 = "Qwen3-235B-A22B-Instruct-2507-AWQ"
 
 
 LLM_MODELS = {
-    LLMModelName.LLAMA3_70B: LLMModelConfig(
-        model="llama-3.3-70b-versatile",
-        base_url="https://api.groq.com/openai/v1",
-        api_key=os.getenv("GROQ_API_KEY", ""),
+    LLMModel.QWEN3: LLMModelConfig(
+        model=config.PRIVATE_LLM_MODEL_NAME,
+        base_url=config.PRIVATE_LLM_ENDPOINT,
+        api_key=config.PRIVATE_LLM_API_KEY,
     ),
 }
 
-DEFAULT_LLM_MODEL = LLMModelName.LLAMA3_70B
+DEFAULT_LLM_MODEL = LLMModel.QWEN3
 
 # ── Tool ──
 
 
-class MCPServerName(str, Enum):
-    """등록된 MCP Server 이름 Enum"""
+class MCPServer(str, Enum):
+    """등록된 MCP Server 이름"""
 
-    FACTORY = "factory"
+    MCP_SERVER = "mcp_server"
 
 
 MCP_SERVERS = {
-    MCPServerName.FACTORY: MCPServerConfig(
-        url=os.getenv("MCP_FACTORY_URL", "http://localhost:8080/sse"),
+    MCPServer.MCP_SERVER: MCPServerConfig(
+        url=f"http://{config.MCP_SERVER_HOST}:{config.MCP_SERVER_PORT}/sse",
     ),
 }

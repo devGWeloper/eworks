@@ -1,17 +1,11 @@
-"""회사 내부 GAIA 라이브러리 대체 모듈 (임시)
+"""회사 내부 GAIA AgentManager 대체 모듈 (임시)
 
 이관 시 이 파일을 삭제하고, import를 회사 내부 라이브러리로 교체한다.
 """
 
 from typing import Callable, Type
 
-from langgraph.graph import END, StateGraph
-
-GAIA_OUTPUT_END = END
-GAIA_STANDARD_OUTPUT_NODE = END
-
-
-# ── AgentManager ──
+from langgraph.graph import StateGraph
 
 
 class AgentManager(StateGraph):
@@ -78,11 +72,11 @@ class AgentManager(StateGraph):
         return decorator
 
     @staticmethod
-    def prompt_type(text: str):
+    def prompt_type(prompt: str):
         """함수에 프롬프트 템플릿을 바인딩하는 데코레이터
 
         사용:
-            @manager.prompt_type(NORMALIZER_PROMPT)
+            @manager.prompt_type(prompt=NORMALIZER_PROMPT)
             async def run_normalizer(state):
                 ...
 
@@ -90,7 +84,7 @@ class AgentManager(StateGraph):
         """
 
         def decorator(func):
-            func.prompt = text
+            func.prompt = prompt
             return func
 
         return decorator

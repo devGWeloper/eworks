@@ -1,4 +1,4 @@
-"""v1_2 워크플로우 상태 정의"""
+"""워크플로우 상태 정의"""
 
 from dataclasses import dataclass, field
 from typing import Any, Dict, Optional

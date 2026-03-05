@@ -1,8 +1,4 @@
-"""도메인 Agent 레지스트리 — 단일 등록 지점
-
-도메인 Agent 추가/삭제 시 _get_domain_agent_classes()만 수정하면
-INTENT_CATALOG이 자동 파생됨
-"""
+"""도메인 Agent 레지스트리 — 단일 등록 지점"""
 
 from functools import lru_cache
 
