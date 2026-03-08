@@ -23,6 +23,7 @@ class CollectionConfig:
     collection_name: str
     uri: str
     embedding: str
+    llm: str = ""  # 비어있으면 DEFAULT_LLM_MODEL 사용
     token: str = ""
     vector_field: str = "vector"
     text_field: str = "text"
@@ -47,6 +48,25 @@ class MCPServerConfig:
     transport: str = "sse"
     timeout: int = 30
 
+
+# ── LLM 모델 ──
+
+
+class LLMModel(str, Enum):
+    """등록된 LLM 모델 이름"""
+
+    QWEN3 = "Qwen3-235B-A22B-Instruct-2507-AWQ"
+
+
+LLM_MODELS = {
+    LLMModel.QWEN3: LLMModelConfig(
+        model=config.PRIVATE_LLM_MODEL_NAME,
+        base_url=config.PRIVATE_LLM_ENDPOINT,
+        api_key=config.PRIVATE_LLM_API_KEY,
+    ),
+}
+
+DEFAULT_LLM_MODEL = LLMModel.QWEN3
 
 # ── Retrieval ──
 
@@ -76,38 +96,21 @@ RETRIEVAL_COLLECTIONS = {
     Collection.KNOWHOW: CollectionConfig(
         collection_name=config.KNOWHOW_USER_COLLECTION_NAME,
         uri=config.KNOWHOW_VECTOR_DB_URI,
+        embedding=Embedding.BGE_M3,
+        llm=LLMModel.QWEN3,
         vector_field="knowhow_embedded_vector",
         text_field="knowhow",
-        embedding=Embedding.BGE_M3,
     ),
     Collection.UPLOAD: CollectionConfig(
         collection_name=config.DOCU_USER_COLLECTION_NAME,
         uri=config.DOCU_VECTOR_DB_URI,
+        embedding=Embedding.BGE_M3,
+        llm=LLMModel.QWEN3,
         vector_field="dense_vector",
         sparse_vector_field="sparse_vector",
         text_field="text",
-        embedding=Embedding.BGE_M3,
     ),
 }
-
-# ── LLM 모델 ──
-
-
-class LLMModel(str, Enum):
-    """등록된 LLM 모델 이름"""
-
-    QWEN3 = "Qwen3-235B-A22B-Instruct-2507-AWQ"
-
-
-LLM_MODELS = {
-    LLMModel.QWEN3: LLMModelConfig(
-        model=config.PRIVATE_LLM_MODEL_NAME,
-        base_url=config.PRIVATE_LLM_ENDPOINT,
-        api_key=config.PRIVATE_LLM_API_KEY,
-    ),
-}
-
-DEFAULT_LLM_MODEL = LLMModel.QWEN3
 
 # ── Tool ──
 
