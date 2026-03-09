@@ -86,7 +86,7 @@ class VectorStore:
                 collection_name=self._config.collection_name,
                 data=[await self._embed(query)],
                 anns_field=self._config.vector_field,
-                search_params={"metric_type": "COSINE", "params": {"nprobe": 10}},
+                search_params=self._config.dense_search_params or {"metric_type": "COSINE", "params": {"nprobe": 10}},
                 limit=k,
                 filter=expr,
                 output_fields=["*"],
@@ -116,28 +116,26 @@ class VectorStore:
 
         async def _op():
             dense_vec = await self._embed(query)
-
-            # dense 필드별 AnnSearchRequest 생성
             fields_weights = self._config.vector_fields or {self._config.vector_field: 1.0}
-            reqs = [
-                AnnSearchRequest(
-                    data=[dense_vec], anns_field=field_name,
-                    param={"metric_type": "COSINE", "params": {"nprobe": 10}},
-                    limit=k, expr=expr,
-                )
-                for field_name in fields_weights
-            ]
-            weights = list(fields_weights.values())
 
-            # sparse 필드 추가
+            # sparse 먼저, dense 뒤에 — WeightedRanker 순서 일치
+            reqs, weights = [], []
             if has_sparse:
                 sparse_vec = await self._embed_sparse(query)
                 reqs.append(AnnSearchRequest(
                     data=[sparse_vec], anns_field=self._config.sparse_vector_field,
-                    param={"metric_type": "IP", "params": {"drop_ratio_search": 0.2}},
+                    param={"metric_type": self._config.sparse_metric_type, "params": {}},
                     limit=k, expr=expr,
                 ))
                 weights.append(sparse_weight)
+
+            for field_name, weight in fields_weights.items():
+                reqs.append(AnnSearchRequest(
+                    data=[dense_vec], anns_field=field_name,
+                    param=self._config.dense_search_params or {"metric_type": "COSINE", "params": {"nprobe": 10}},
+                    limit=k, expr=expr,
+                ))
+                weights.append(weight)
 
             reranker = WeightedRanker(*weights) if ranker == "weighted" else RRFRanker(k=60)
             results = self._ensure_client().hybrid_search(
