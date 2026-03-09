@@ -106,29 +106,43 @@ class VectorStore:
         k: int = 5,
         expr: Optional[str] = None,
         ranker: Literal["rrf", "weighted"] = "rrf",
-        dense_weight: float = 0.5,
-        sparse_weight: float = 0.5,
+        sparse_weight: float = 0.2,
     ) -> list[tuple[Document, float]]:
-        if not self._config.sparse_vector_field:
-            raise ValueError(f"'{self._name}': sparse_vector_field 미설정")
+        # vector_fields 또는 sparse_vector_field 중 하나는 있어야 hybrid
+        has_multi_dense = self._config.vector_fields and len(self._config.vector_fields) > 1
+        has_sparse = bool(self._config.sparse_vector_field)
+        if not has_multi_dense and not has_sparse:
+            raise ValueError(f"'{self._name}': hybrid search 불가 — vector_fields 또는 sparse_vector_field 설정 필요")
 
         async def _op():
-            dense_vec, sparse_vec = await asyncio.gather(self._embed(query), self._embed_sparse(query))
-            reranker = WeightedRanker(dense_weight, sparse_weight) if ranker == "weighted" else RRFRanker(k=60)
+            dense_vec = await self._embed(query)
+
+            # dense 필드별 AnnSearchRequest 생성
+            fields_weights = self._config.vector_fields or {self._config.vector_field: 1.0}
+            reqs = [
+                AnnSearchRequest(
+                    data=[dense_vec], anns_field=field_name,
+                    param={"metric_type": "COSINE", "params": {"nprobe": 10}},
+                    limit=k, expr=expr,
+                )
+                for field_name in fields_weights
+            ]
+            weights = list(fields_weights.values())
+
+            # sparse 필드 추가
+            if has_sparse:
+                sparse_vec = await self._embed_sparse(query)
+                reqs.append(AnnSearchRequest(
+                    data=[sparse_vec], anns_field=self._config.sparse_vector_field,
+                    param={"metric_type": "IP", "params": {"drop_ratio_search": 0.2}},
+                    limit=k, expr=expr,
+                ))
+                weights.append(sparse_weight)
+
+            reranker = WeightedRanker(*weights) if ranker == "weighted" else RRFRanker(k=60)
             results = self._ensure_client().hybrid_search(
                 collection_name=self._config.collection_name,
-                reqs=[
-                    AnnSearchRequest(
-                        data=[dense_vec], anns_field=self._config.vector_field,
-                        param={"metric_type": "COSINE", "params": {"nprobe": 10}},
-                        limit=k, expr=expr,
-                    ),
-                    AnnSearchRequest(
-                        data=[sparse_vec], anns_field=self._config.sparse_vector_field,
-                        param={"metric_type": "IP", "params": {"drop_ratio_search": 0.2}},
-                        limit=k, expr=expr,
-                    ),
-                ],
+                reqs=reqs,
                 ranker=reranker,
                 limit=k,
                 output_fields=["*"],
@@ -143,7 +157,6 @@ class VectorStore:
         k: int = 5,
         expr: Optional[str] = None,
         ranker: Literal["rrf", "weighted"] = "rrf",
-        dense_weight: float = 0.5,
-        sparse_weight: float = 0.5,
+        sparse_weight: float = 0.2,
     ) -> list[Document]:
-        return [doc for doc, _ in await self.hybrid_search_with_score(query, k, expr, ranker, dense_weight, sparse_weight)]
+        return [doc for doc, _ in await self.hybrid_search_with_score(query, k, expr, ranker, sparse_weight)]

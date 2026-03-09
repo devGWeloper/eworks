@@ -29,12 +29,10 @@ class BaseRetriever:
         k: int = 5,
         expr: Optional[str] = None,
         ranker: Literal["rrf", "weighted"] = "rrf",
-        dense_weight: float = 0.5,
-        sparse_weight: float = 0.5,
+        sparse_weight: float = 0.2,
     ) -> list[tuple[Document, float]]:
         return await self._vector_store.hybrid_search_with_score(
-            query=query, k=k, expr=expr, ranker=ranker,
-            dense_weight=dense_weight, sparse_weight=sparse_weight,
+            query=query, k=k, expr=expr, ranker=ranker, sparse_weight=sparse_weight,
         )
 
     async def hybrid_search(
@@ -43,7 +41,6 @@ class BaseRetriever:
         k: int = 5,
         expr: Optional[str] = None,
         ranker: Literal["rrf", "weighted"] = "rrf",
-        dense_weight: float = 0.5,
-        sparse_weight: float = 0.5,
+        sparse_weight: float = 0.2,
     ) -> list[Document]:
-        return [doc for doc, _ in await self.hybrid_search_with_score(query, k, expr, ranker, dense_weight, sparse_weight)]
+        return [doc for doc, _ in await self.hybrid_search_with_score(query, k, expr, ranker, sparse_weight)]

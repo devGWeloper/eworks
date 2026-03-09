@@ -26,6 +26,7 @@ class CollectionConfig:
     llm: str = ""  # 비어있으면 DEFAULT_LLM_MODEL 사용
     token: str = ""
     vector_field: str = "vector"
+    vector_fields: dict = None  # 다중 dense 필드: {"title_dense": 0.6, "text_dense": 0.4}
     text_field: str = "text"
     sparse_vector_field: str = ""  # 설정 시 hybrid search 활성화
 
