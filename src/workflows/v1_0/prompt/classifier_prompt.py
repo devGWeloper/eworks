@@ -21,10 +21,10 @@ CLASSIFIER_SYSTEM_PROMPT = """당신은 Intent Classifier입니다.
 
 ## 응답 형식
 ```json
-{
+{{
     "intent_id": "A.B.C",
-    "parameters": {}
-}
+    "parameters": {{}}
+}}
 ```
 
 ## 필드 설명
@@ -32,9 +32,9 @@ CLASSIFIER_SYSTEM_PROMPT = """당신은 Intent Classifier입니다.
 - parameters: 추출된 파라미터 객체"""
 
 CLASSIFIER_USER_PROMPT = """<의도_목록>
-$intent_catalog
+{intent_catalog}
 </의도_목록>
 
 <사용자_입력>
-$user_input
+{user_input}
 </사용자_입력>"""

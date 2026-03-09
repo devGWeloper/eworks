@@ -2,7 +2,6 @@
 
 import json
 import logging
-from string import Template
 from typing import Callable, Dict, List, Optional
 
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
@@ -10,6 +9,13 @@ from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 from ..core.llm import call_llm
 
 logger = logging.getLogger(__name__)
+
+
+class _SafeDict(dict):
+    """format_map용 — 없는 키는 {key} 원형 유지 (safe_substitute 동작과 동일)"""
+
+    def __missing__(self, key: str) -> str:
+        return "{" + key + "}"
 
 
 class AgentExecutor:
@@ -53,10 +59,10 @@ class AgentExecutor:
         messages = []
 
         if system_prompt:
-            messages.append(SystemMessage(content=Template(system_prompt).safe_substitute(**extra)))
+            messages.append(SystemMessage(content=system_prompt.format_map(_SafeDict(extra))))
 
         if self._user_prompt_template:
-            messages.append(HumanMessage(content=Template(self._user_prompt_template).safe_substitute(**extra)))
+            messages.append(HumanMessage(content=self._user_prompt_template.format_map(_SafeDict(extra))))
 
         return messages
 

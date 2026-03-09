@@ -19,9 +19,9 @@ RESPONSER_SYSTEM_PROMPT = """당신은 AI 에이전트의 최종 응답 생성�
 4. 결과는 자연스러운 문장으로 출력합니다. 내부 구조나 메타데이터는 불필요합니다."""
 
 RESPONSER_USER_PROMPT = """[실행 결과]
-$results_summary
+{results_summary}
 
 [사용자 질의]
-$query
+{query}
 
 위 실행 결과를 바탕으로 사용자 질의에 대한 최종 답변을 생성하세요."""

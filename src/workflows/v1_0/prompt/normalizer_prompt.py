@@ -20,12 +20,12 @@ NORMALIZER_SYSTEM_PROMPT = """당신은 사용자 질의를 표준화하는 Norm
 4. 결과는 표준 질의문 한 문장만 출력합니다. 부가 설명은 불필요합니다."""
 
 NORMALIZER_USER_PROMPT = """[대화 이력]
-$chat_history
+{chat_history}
 
 [원본 질의]
-$query
+{query}
 
 [정규화된 입력]
-$normalized
+{normalized}
 
 위 대화 이력을 참고하여, 정규화된 입력을 축약하고 대명사를 해소한 표준 질의문을 생성하세요."""

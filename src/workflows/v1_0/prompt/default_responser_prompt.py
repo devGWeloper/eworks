@@ -18,6 +18,6 @@ DEFAULT_RESPONSER_SYSTEM_PROMPT = """당신은 AI 에이전트의 응답 생성�
 3. 응답은 자연스럽고 간결하게 작성합니다."""
 
 DEFAULT_RESPONSER_USER_PROMPT = """[사용자 질의]
-$query
+{query}
 
 위 질의에 대해 처리할 수 없음을 안내하는 응답을 생성하세요."""

@@ -10,7 +10,7 @@ USER: 조회 대상 + Agent intent 카탈로그
   - intent_catalog: Agent intent 카탈로그 JSON
 """
 
-KNOWLEDGE_INQUIRY_SYSTEM_PROMPT = """$agent_prompt
+KNOWLEDGE_INQUIRY_SYSTEM_PROMPT = """{agent_prompt}
 
 ## 지시사항
 사용자의 조회 대상에 맞는 정보를 제공하세요.
@@ -18,7 +18,7 @@ Agent 기능에 대한 질의인 경우, Agent Intent 카탈로그를 바탕으�
 그 외 지식, 메뉴얼, 기준정보 조회인 경우, 해당 주제에 대해 답변하세요."""
 
 KNOWLEDGE_INQUIRY_USER_PROMPT = """## 조회 대상
-$topic
+{topic}
 
 ## Agent Intent 카탈로그
-$intent_catalog"""
+{intent_catalog}"""
