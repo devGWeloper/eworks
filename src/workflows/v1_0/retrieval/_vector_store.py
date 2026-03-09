@@ -121,9 +121,14 @@ class VectorStore:
             # sparse 먼저, dense 뒤에 — WeightedRanker 순서 일치
             reqs, weights = [], []
             if has_sparse:
-                sparse_vec = await self._embed_sparse(query)
+                # BM25: Milvus 내장 처리 — 텍스트 그대로 전달, 외부 embedding 불필요
+                # IP/COSINE: 외부 sparse embedding 필요
+                if self._config.sparse_metric_type == "BM25":
+                    sparse_data = [query]
+                else:
+                    sparse_data = [await self._embed_sparse(query)]
                 reqs.append(AnnSearchRequest(
-                    data=[sparse_vec], anns_field=self._config.sparse_vector_field,
+                    data=sparse_data, anns_field=self._config.sparse_vector_field,
                     param={"metric_type": self._config.sparse_metric_type, "params": {}},
                     limit=k, expr=expr,
                 ))
