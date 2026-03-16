@@ -26,7 +26,6 @@ class CollectionConfig:
     llm: str = ""  # 비어있으면 DEFAULT_LLM_MODEL 사용
     token: str = ""
     vector_field: str = "vector"
-    vector_fields: dict = None  # 다중 dense 필드: {"title_dense": 0.6, "text_dense": 0.4}
     text_field: str = "text"
     sparse_vector_field: str = ""       # 설정 시 hybrid search 활성화
     sparse_metric_type: str = "IP"      # sparse 필드 metric: "IP" 또는 "BM25"
@@ -115,14 +114,13 @@ RETRIEVAL_COLLECTIONS = {
         text_field="text",
     ),
     Collection.IFLOW: CollectionConfig(
-        collection_name = config.IFLOW_COLLECTION_NAME,
+        collection_name=config.IFLOW_COLLECTION_NAME,
         uri=config.IFLOW_VECTORSTORE_ENDPOINT,
-        vector_field="title_dense",
-        vector_fields={"title_dense":0.6, "text_dense":0.4},
+        vector_field="text_dense",
         sparse_vector_field="text_sparse",
         sparse_metric_type="BM25",
         text_field="text",
-        embedding=Embedding.BGE_M3
+        embedding=Embedding.BGE_M3,
         )
 }
 
