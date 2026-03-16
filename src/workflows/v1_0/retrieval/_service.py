@@ -8,6 +8,7 @@ from ..config.settings import Collection, CollectionConfig
 from ._embeddings import get_embedding
 from ._vector_store import VectorStore
 from .exceptions import RetrievalConfigError
+from .iflow_retriever import IflowRetriever
 from .knowhow_retriever import KnowhowRetriever
 from .upload_retriever import UploadRetriever
 
@@ -19,6 +20,7 @@ _sparse_embeddings: Dict[str, Any] = {}
 _RETRIEVER_MAP: Dict[str, type] = {
     Collection.KNOWHOW: KnowhowRetriever,
     Collection.UPLOAD: UploadRetriever,
+    Collection.IFLOW: IflowRetriever,
 }
 
 
@@ -83,6 +85,10 @@ def knowhow() -> KnowhowRetriever:
 
 def upload() -> UploadRetriever:
     return get_retriever(Collection.UPLOAD)
+
+
+def iflow() -> IflowRetriever:
+    return get_retriever(Collection.IFLOW)
 
 
 def available_retrievers() -> list:

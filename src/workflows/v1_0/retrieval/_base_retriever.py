@@ -1,6 +1,6 @@
 """BaseRetriever — VectorStore 검색 위임 기본 클래스"""
 
-from typing import Literal, Optional
+from typing import Optional
 
 from langchain_core.documents import Document
 
@@ -28,11 +28,11 @@ class BaseRetriever:
         query: str,
         k: int = 5,
         expr: Optional[str] = None,
-        ranker: Literal["rrf", "weighted"] = "rrf",
-        sparse_weight: float = 0.2,
+        sparse_weight: float = 0.1,
+        dense_weight: float = 0.9,
     ) -> list[tuple[Document, float]]:
         return await self._vector_store.hybrid_search_with_score(
-            query=query, k=k, expr=expr, ranker=ranker, sparse_weight=sparse_weight,
+            query=query, k=k, expr=expr, sparse_weight=sparse_weight, dense_weight=dense_weight,
         )
 
     async def hybrid_search(
@@ -40,7 +40,7 @@ class BaseRetriever:
         query: str,
         k: int = 5,
         expr: Optional[str] = None,
-        ranker: Literal["rrf", "weighted"] = "rrf",
-        sparse_weight: float = 0.2,
+        sparse_weight: float = 0.1,
+        dense_weight: float = 0.9,
     ) -> list[Document]:
-        return [doc for doc, _ in await self.hybrid_search_with_score(query, k, expr, ranker, sparse_weight)]
+        return [doc for doc, _ in await self.hybrid_search_with_score(query, k, expr, sparse_weight, dense_weight)]
