@@ -44,3 +44,15 @@ class BaseRetriever:
         dense_weight: float = 0.9,
     ) -> list[Document]:
         return [doc for doc, _ in await self.hybrid_search_with_score(query, k, expr, sparse_weight, dense_weight)]
+
+    async def hybrid_search_with_threshold(
+        self,
+        query: str,
+        k: int = 5,
+        min_score: float = 0.5,
+        expr: Optional[str] = None,
+        sparse_weight: float = 0.1,
+        dense_weight: float = 0.9,
+    ) -> list[tuple[Document, float]]:
+        results = await self.hybrid_search_with_score(query, k, expr, sparse_weight, dense_weight)
+        return [(doc, score) for doc, score in results if score >= min_score]
